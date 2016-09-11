@@ -54,8 +54,39 @@ bool RSSDKLog::setFrame(int32_t i) {
 	color = sample->color;
 	depth = sample->depth;
 
+	color->AcquireAccess(PXCImage::ACCESS_READ, &cdata);
+	depth->AcquireAccess(PXCImage::ACCESS_READ, &ddata);
+
 	info = color->QueryInfo();
 	infod = depth->QueryInfo();
+
+	resampled_depth = projection->CreateDepthImageMappedToColor(depth, color);
+	resampled_depth->AcquireAccess(PXCImage::ACCESS_READ, &rsddata);
+}
+
+bool RSSDKLog::getImageData(unsigned char * data)
+{
+	if (cdata.format == PXCImage::PIXEL_FORMAT_RGB32) {
+		//Write out image data
+		size_t png_len = 0;
+
+
+		for (int px = 0; px < info.width*info.height; ++px) {
+			data[px * 3] = cdata.planes[0][px * 4];
+			data[px * 3 + 1] = cdata.planes[0][px * 4 + 1];
+			data[px * 3 + 2] = cdata.planes[0][px * 4 + 2];
+		}
+		return true;
+	}
+	else
+		return false;
+}
+
+unsigned char * RSSDKLog::getResampleDepthData()
+{
+	if (resampled_depth != nullptr)
+		return rsddata.planes[0];
+	return nullptr;
 }
 
 void RSSDKLog::initProjection()
