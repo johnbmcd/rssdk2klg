@@ -20,7 +20,7 @@ RSSDKLog::RSSDKLog(const std::wstring &filename):
 
 	sm->QueryCaptureManager()->SetPause(true);
 
-	pxcI32 nframes = cm->QueryNumberOfFrames();
+	nframes = cm->QueryNumberOfFrames();
 
 	setFrame(curr_frame);
 }
@@ -35,10 +35,22 @@ bool RSSDKLog::nextFrame() {
 
 	++curr_frame;
 	setFrame(curr_frame);
+
+	return true;
 }
 
 bool RSSDKLog::setFrame(int32_t i) {
-	if (i >= nframes) return false;
+	if (i >= nframes || i < 0) return false;
+
+	if (sample != NULL) {
+		resampled_depth->ReleaseAccess(&rsddata);
+		resampled_depth->Release();
+
+		depth->ReleaseAccess(&ddata);
+		color->ReleaseAccess(&cdata);
+
+		sm->ReleaseFrame();
+	}
 
 	cm->SetFrameByIndex(i);
 	sm->FlushFrame();
@@ -62,6 +74,8 @@ bool RSSDKLog::setFrame(int32_t i) {
 
 	resampled_depth = projection->CreateDepthImageMappedToColor(depth, color);
 	resampled_depth->AcquireAccess(PXCImage::ACCESS_READ, &rsddata);
+
+	return true;
 }
 
 bool RSSDKLog::getImageData(unsigned char * data)
@@ -114,5 +128,8 @@ void RSSDKLog::getCalibration()
 
 RSSDKLog::~RSSDKLog()
 {
+	projection->Release();
+
 	sm->ReleaseFrame();
+	sm->Release();
 }

@@ -13,11 +13,12 @@ public:
 	inline int32_t width() const { return info.width; };
 	inline int32_t height() const { return info.height; };
 	inline int32_t numframes() const { return nframes; };
+	inline int64_t getTimeStamp() const { return color->QueryTimeStamp(); };
 
-	inline int32_t fx() const { return strcalibration.focalLength.x; };
-	inline int32_t fy() const { return strcalibration.focalLength.y; };
-	inline int32_t u() const { return strcalibration.principalPoint.x; };
-	inline int32_t v() const { return strcalibration.principalPoint.y; };
+	inline float fx() const { return strcalibration.focalLength.x; };
+	inline float fy() const { return strcalibration.focalLength.y; };
+	inline float u() const { return strcalibration.principalPoint.x; };
+	inline float v() const { return strcalibration.principalPoint.y; };
 
 	bool nextFrame();
 	bool setFrame(int32_t i);
