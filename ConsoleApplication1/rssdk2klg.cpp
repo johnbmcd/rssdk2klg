@@ -42,10 +42,10 @@ int main()
 	cv::Mat cv_frame(height, width, CV_8UC3, intermediate_buffer);
 
 	std::cout << "Stream Calibration Parameters: " << std::endl;
-	std::cout << "fx : " << rssdklog.fx();
-	std::cout << "fy : " << rssdklog.fy();
-	std::cout << "u : " << rssdklog.u();
-	std::cout << "v : " << rssdklog.v();
+	std::cout << "fx : " << rssdklog.fx() << std::endl;
+	std::cout << "fy : " << rssdklog.fy() << std::endl;
+	std::cout << "u : " << rssdklog.u() << std::endl;
+	std::cout << "v : " << rssdklog.v() << std::endl;
 
 	unsigned long resampled_depth_size = width * height * sizeof(uint16_t);
 	unsigned long depth_buffer_size = compressBound(resampled_depth_size);
@@ -76,6 +76,7 @@ int main()
 
 			unsigned char *resampled_depth_data = rssdklog.getResampleDepthData();
 
+			depth_buffer_size = compressBound(resampled_depth_size);
 			if (compress2(depth_buffer, &depth_buffer_size, resampled_depth_data, width * height * sizeof(uint16_t), Z_BEST_SPEED) != Z_OK) {
 				std::cerr << __FILE__ << ", " << __LINE__ << ": compress2 failed" << std::endl;
 				exit(-1);

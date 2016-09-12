@@ -28,7 +28,7 @@ public:
 
 protected:
 	void initProjection();
-	void getCalibration();
+	void initCalibration();
 
 	std::wstring filename;
 

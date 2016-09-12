@@ -22,6 +22,9 @@ RSSDKLog::RSSDKLog(const std::wstring &filename):
 
 	nframes = cm->QueryNumberOfFrames();
 
+	initProjection();
+	initCalibration();
+
 	setFrame(curr_frame);
 }
 
@@ -44,7 +47,7 @@ bool RSSDKLog::setFrame(int32_t i) {
 
 	if (sample != NULL) {
 		resampled_depth->ReleaseAccess(&rsddata);
-		resampled_depth->Release();
+		//resampled_depth->Release();
 
 		depth->ReleaseAccess(&ddata);
 		color->ReleaseAccess(&cdata);
@@ -108,22 +111,14 @@ void RSSDKLog::initProjection()
 	projection = sm->QueryCaptureManager()->QueryDevice()->CreateProjection();
 }
 
-void RSSDKLog::getCalibration()
+void RSSDKLog::initCalibration()
 {
 	calibration = projection->QueryCalibration();
-	PXCCalibration::StreamCalibration strcalibration;
-	PXCCalibration::StreamTransform strtransformation;
 
 	calibration->QueryStreamProjectionParametersEx(PXCCapture::STREAM_TYPE_DEPTH,
 		PXCCapture::Device::STREAM_OPTION_STRONG_STREAM_SYNC,
 		&strcalibration,
 		&strtransformation);
-
-	std::cout << "Stream Calibration Parameters: " << std::endl;
-	std::cout << "fx : " << strcalibration.focalLength.x;
-	std::cout << "fy : " << strcalibration.focalLength.y;
-	std::cout << "u : " << strcalibration.principalPoint.x;
-	std::cout << "v : " << strcalibration.principalPoint.y;
 }
 
 RSSDKLog::~RSSDKLog()
