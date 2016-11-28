@@ -20,7 +20,7 @@ RSSDKLog::RSSDKLog(const std::wstring &filename):
 
 	sm->QueryCaptureManager()->SetPause(true);
 
-	nframes = cm->QueryNumberOfFrames();
+	nframes = cm->QueryNumberOfFrames()-2200;
 
 	initProjection();
 	initCalibration();

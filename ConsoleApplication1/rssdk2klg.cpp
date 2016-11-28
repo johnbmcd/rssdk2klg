@@ -26,14 +26,62 @@ void logData(std::ofstream &logfile,
 	logfile.write(rgbData, imageSize);
 }
 
-int main()
+struct MatchPathSeparator
 {
-	RSSDKLog rssdklog(L"D:\\Users\\John\\Data\\RealSense\\maynooth_office.rssdk");
+	bool operator()(char ch) const
+	{
+		return ch == '\\' || ch == '/';
+	}
+};
+
+struct ExtensionSeparator
+{
+	bool operator()(char ch) const
+	{
+		return ch == '.';
+	}
+};
+
+class FilenameParser {
+public:
+	FilenameParser(std::string filename) :
+		path_(filename.begin(),
+			std::find_if(filename.rbegin(), filename.rend(), MatchPathSeparator()).base()),
+		basename_(std::find_if(filename.rbegin(), filename.rend(), MatchPathSeparator()).base(),
+			std::find_if(filename.rbegin(), filename.rend(), ExtensionSeparator()).base()-1),
+		extension_(std::find_if(filename.rbegin(), filename.rend(), ExtensionSeparator()).base()-1,
+			 filename.end())
+	{}
+
+	std::wstring path() { return path_;  }
+	std::wstring basename() { return basename_; }
+	std::wstring extension() { return extension_; }
+
+	std::wstring filename() { return path_ + basename_ + extension_; }
+
+protected:
+	std::wstring path_, basename_, extension_;
+};
+
+int main(int argc, char *argv[])
+{
+	if (argc < 2) {
+		std::cout << "Usage: " << argv[0] << " filename" << std::endl;
+		exit(-1);
+	}
+
+	FilenameParser filenameParser(argv[1]);
+
+	std::wcout << "Input filename: " << filenameParser.filename()<< std::endl;
+	RSSDKLog rssdklog(filenameParser.filename());
 	
-	std::wstring klgfilename = L"D:\\Users\\John\\Data\\RealSense\\maynooth_office.klg";
+	std::wstring klgfilename = filenameParser.path() + filenameParser.basename() + L".klg";
+	std::wcout << "Output filename: " << klgfilename << std::endl;
+
 	std::ofstream klgfile(klgfilename, std::ios::binary);
 	int32_t nframes = rssdklog.numframes();
 	klgfile.write((const char *)&nframes,sizeof(int32_t));
+	std::cout << "Number of frames: " << nframes << std::endl;
 
 	int32_t width = rssdklog.width(), height = rssdklog.height();
 	std::cout << "Resolution: " << width << ", " << height << std::endl;
@@ -52,11 +100,9 @@ int main()
 	uint8_t *depth_buffer = new uint8_t[depth_buffer_size];
 
 	//int32_t read_frames = 0;
+	std::cout << "Processing ";
 	for (int i = 0; i < nframes; ++i) {
-		std::cout << "Processing frame " << i << std::endl;
-		// Set to work on every 3rd frame of data
-		rssdklog.setFrame(i);
-
+		std::cout << ".";
 		if (rssdklog.getImageData(intermediate_buffer)) {
 			//Write out image data
 			size_t png_len = 0;
